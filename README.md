@@ -4,7 +4,7 @@
 > This is an original, from-scratch build. It is not affiliated with, and does not
 > contain any code, prompts, data, or business logic from, any employer or client.
 
-![status](https://img.shields.io/badge/status-planned-lightgrey)
+![status](https://img.shields.io/badge/status-phase%201%20in%20progress-yellow)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
 
@@ -53,6 +53,27 @@ Work is broken into phase-tagged user stories tracked as GitHub Issues, not in t
     gh issue list --repo faheemkhaskheli9/realtime-voice-agent --state open --label type:user-story
 
 Implement Phase 1 issues first (later phases depend on it). When you start one, add label `status:in-progress`. When you finish, close it referencing the commit (e.g. `git commit -m "... Closes #4"`) and push.
+
+## Phase 1 quickstart
+
+```bash
+pip install -r requirements.txt
+
+# Dry-run: no LiveKit server needed (in-process fake room)
+PYTHONPATH=src python -m rtva.cli --max-runtime 10 --verbose
+
+# Connect to a real server: set LIVEKIT_URL / LIVEKIT_API_KEY /
+# LIVEKIT_API_SECRET in .env, then also install the SDK:
+pip install livekit
+PYTHONPATH=src python -m rtva.cli
+python scripts/join_smoke.py --identity test-client   # separate terminal
+```
+
+The agent worker logs `connected` / `disconnected` / `participant joined` /
+`participant left` lifecycle events. Setting only some of the three LiveKit
+env vars is a hard error (not a silent fall-back to dry-run).
+
+VS Code: **RTVA: agent worker**, **RTVA: pytest** in `.vscode/launch.json`.
 
 ## 6. Repository Structure
 

@@ -1,0 +1,34 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "RTVA: agent worker",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "rtva.cli",
+      "args": ["--verbose"],
+      "cwd": "${workspaceFolder}",
+      "env": { "PYTHONPATH": "${workspaceFolder}/src" },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "RTVA: agent worker (10s, auto-stop)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "rtva.cli",
+      "args": ["--max-runtime", "10", "--verbose"],
+      "cwd": "${workspaceFolder}",
+      "env": { "PYTHONPATH": "${workspaceFolder}/src" },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "RTVA: pytest",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests/", "-v"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    }
+  ]
+}
