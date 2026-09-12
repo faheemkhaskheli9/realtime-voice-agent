@@ -1,0 +1,10 @@
+# Non-secret LiveKit connection settings.
+#
+# Secrets (LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET) are never put
+# here -- they always come from the environment / .env, and this file only
+# overrides room_name/agent_identity on top of whatever the environment
+# provides. With no LiveKit credentials in the environment, the worker runs
+# in dry-run mode against an in-process fake room regardless of this file.
+
+room_name: voice-agent-dev
+agent_identity: agent-worker

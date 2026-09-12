@@ -1,5 +1,6 @@
 # Phase 1 runtime + test dependencies.
 PyJWT>=2.8
+PyYAML>=6.0
 
 # Optional: only needed to connect to a real LiveKit server (dry-run mode
 # works without it). Install with: pip install -r requirements.txt livekit

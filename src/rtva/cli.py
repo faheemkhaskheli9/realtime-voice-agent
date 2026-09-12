@@ -1,7 +1,8 @@
-"""Run the agent worker: ``python -m rtva.cli``.
+"""Run the agent worker: ``python -m rtva.cli --config configs/default.yaml``.
 
-Reads LiveKit settings from the environment. With no credentials it runs in
-dry-run mode against the in-process fake room so the entrypoint is always
+Reads LiveKit settings from a YAML config (room name, agent identity) plus
+the environment (secrets, always). With no credentials it runs in dry-run
+mode against the in-process fake room so the entrypoint is always
 launchable. Ctrl-C stops it cleanly.
 """
 
@@ -12,14 +13,14 @@ import asyncio
 import logging
 import signal
 
-from .config import ConfigError, LiveKitConfig
+from .config import ConfigError, load_config
 from .worker import AgentWorker
 
 
-async def _run(max_runtime: float | None) -> int:
+async def _run(config_path: str | None, max_runtime: float | None) -> int:
     try:
-        config = LiveKitConfig.from_env()
-    except ConfigError as exc:
+        config = load_config(config_path)
+    except (FileNotFoundError, ConfigError) as exc:
         logging.error("config error: %s", exc)
         return 2
 
@@ -38,6 +39,11 @@ async def _run(max_runtime: float | None) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="rtva", description="Run the voice agent worker")
     parser.add_argument(
+        "--config",
+        default=None,
+        help="path to a YAML config file (default: configs/default.yaml if present)",
+    )
+    parser.add_argument(
         "--max-runtime",
         type=float,
         default=None,
@@ -50,7 +56,7 @@ def main(argv: list[str] | None = None) -> int:
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
     )
-    return asyncio.run(_run(args.max_runtime))
+    return asyncio.run(_run(args.config, args.max_runtime))
 
 
 if __name__ == "__main__":  # pragma: no cover

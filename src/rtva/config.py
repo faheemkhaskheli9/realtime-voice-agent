@@ -16,10 +16,14 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
+
+import yaml
 
 _ENV_URL = "LIVEKIT_URL"
 _ENV_KEY = "LIVEKIT_API_KEY"
 _ENV_SECRET = "LIVEKIT_API_SECRET"
+_DEFAULT_CONFIG_PATH = Path("configs/default.yaml")
 
 
 class ConfigError(ValueError):
@@ -67,3 +71,50 @@ class LiveKitConfig:
             room_name=src.get("LIVEKIT_ROOM", "voice-agent-dev"),
             agent_identity=src.get("LIVEKIT_AGENT_IDENTITY", "agent-worker"),
         )
+
+    @classmethod
+    def from_yaml(
+        cls, path: str | os.PathLike[str], env: dict[str, str] | None = None
+    ) -> "LiveKitConfig":
+        """Load non-secret settings (room name, agent identity) from a YAML
+        file at `path`; secrets always come from the environment, never the
+        config file, so a committed config never holds a credential.
+
+        `path` given but missing is a hard error (rule 7: strict on
+        explicit user input), matching `from_env`'s partial-credential
+        error for a misconfigured deployment rather than a silent
+        fall-through to defaults.
+        """
+
+        file_path = Path(path)
+        if not file_path.is_file():
+            raise FileNotFoundError(f"config file not found: {file_path}")
+        raw = yaml.safe_load(file_path.read_text(encoding="utf-8")) or {}
+        if not isinstance(raw, dict):
+            raise ConfigError("config file must contain a mapping at the top level")
+
+        base = cls.from_env(env)
+        room_name = raw.get("room_name", base.room_name)
+        agent_identity = raw.get("agent_identity", base.agent_identity)
+        return cls(
+            url=base.url,
+            api_key=base.api_key,
+            api_secret=base.api_secret,
+            room_name=str(room_name),
+            agent_identity=str(agent_identity),
+        )
+
+
+def load_config(
+    config_path: str | os.PathLike[str] | None = None,
+    env: dict[str, str] | None = None,
+) -> LiveKitConfig:
+    """Resolve the config path per rule 7: an explicit `config_path` that is
+    missing is a hard error; omitted, fall back to `configs/default.yaml`
+    if present, else env vars alone."""
+
+    if config_path is not None:
+        return LiveKitConfig.from_yaml(config_path, env)
+    if _DEFAULT_CONFIG_PATH.is_file():
+        return LiveKitConfig.from_yaml(_DEFAULT_CONFIG_PATH, env)
+    return LiveKitConfig.from_env(env)
